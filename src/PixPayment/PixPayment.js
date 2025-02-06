@@ -5,13 +5,13 @@ import { v4 as uuidv4 } from "uuid";
 
 class PixPayment {
   async create(req, res) {
-    console.log("Iniciando criação de cobrança PIX...");
+    
 
-    //Certificado, Chave , ID, tudo que vem do dotenv
+    
     const clientId = process.env.CLIENT_ID;
     const clientSecret = process.env.CLIENT_SECRET;
-    const certPath = process.env.CERT_PATH; // certificado .crt
-    const keyPath = process.env.KEY_PATH;   //chave privada .key
+    const certPath = process.env.CERT_PATH; 
+    const keyPath = process.env.KEY_PATH;   
 
     // Autenticação mTLS
     const httpsAgent = new https.Agent({
@@ -21,7 +21,7 @@ class PixPayment {
 
     try {
      
-      console.log("token de autenticação...");
+      
       
       
       const params = new URLSearchParams();
@@ -32,11 +32,12 @@ class PixPayment {
 
 
 
-      console.log('Obtendo os search params')
+      
 
-      //DISGRAAAAAAAÇA
+      
       const oauthResponse = await axios.post(
-        "https://cdpj-sandbox.partners.uatinter.co/oauth/v2/token",/*Substituir pelo endereço que não eh do sandbox*/
+        //That's the test enviroment adress, change it
+        "https://cdpj-sandbox.partners.uatinter.co/oauth/v2/token",
         params,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -45,46 +46,52 @@ class PixPayment {
       );
 
       const token = oauthResponse.data.access_token;
-      console.log("Token de autenticação obtido:", token);
+      
 
      
-      console.log("Criando cobrança PIX...");
+      
       const data = req.body;
 
       const payload = {
         calendario: {
-          expiracao: 3600, //3600 segundos
+          expiracao: 3600, 
         },
         devedor: {
-          cnpj: data.cnpj || "12345678000195", // Substituir pelo CNPJ correto, se necessário
-          nome: data.nome || "Cliente Exemplo",
+          
+          cnpj: data.cnpj || "12345678000195",
+          nome: data.nome || "Client",
         },
         valor: {
-          original: data.transaction_amount.toFixed(2), // Valor da cobrança
+          original: data.transaction_amount.toFixed(2), 
         },
-        chave: process.env.CHAVE_PIX, // Precisa-se dessa chave, só Deus sabe onde encontrar
-        solicitacaoPagador: data.description || "Pagamento de serviço",
+        chave: process.env.CHAVE_PIX, 
+        solicitacaoPagador: data.description || "Payment",
       };
-      console.log("Vamo tentar aqui")
+
+
+      //Creating payment
       const pixResponse = await axios.post(
-        "https://cdpj-sandbox.partners.uatinter.co/pix/v2/cob",/*Substituir pelo endereço que não eh do sandbox*/
+        //That's the test enviroment adress, change it
+        "https://cdpj-sandbox.partners.uatinter.co/pix/v2/cob",
         payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "x-conta-corrente": process.env.CONTA_CORRENTE, // Numero da conta corrente, soh deus sabe onde achar
+            "x-conta-corrente": process.env.CONTA_CORRENTE, 
           },
           httpsAgent,
         }
-      );console.log("PIXRESPONSE", pixResponse.data.loc.location)
+      );
 
-      // Retornar o link para o QR Code e o status da cobrança
-      console.log("Cobrança criada ");
+      // Return the link for the QR code
+      
       return res.status(200).json({
-        link: pixResponse.data.loc.location, // URL do QR Code Dinâmico      |
-        txid: pixResponse.data.txid,        // ID da transação               |//CHATGPT  
-        status: pixResponse.data.status,    // Status da cobrança            |
+        // Payment link
+        link: pixResponse.data.loc.location,
+        // Transation ID
+        txid: pixResponse.data.txid,                     
+        status: pixResponse.data.status,            
         
       }); 
     } catch (error) {
