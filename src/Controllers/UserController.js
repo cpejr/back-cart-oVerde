@@ -9,7 +9,7 @@ import {
 } from "../Utils/general/CookieAuth.js";
 
 class UserController {
-  async login(req, res) {
+  async create(req, res) {
     try {
       const { email, senha } = req.body;
       let user = await UserDefaultModel.findOne({ email: req.body.email });
@@ -17,6 +17,8 @@ class UserController {
       if (!user) {
         user = await UserDefaultModel.create(req.body);
         await user.save();
+      } else {
+        return res.status(400).json({ message: "Email em uso" });
       }
 
       const { createdAt, updatedAt, password: pass, ...tokenUserData } = user;
@@ -39,8 +41,7 @@ class UserController {
 
   async read(req, res) {
     try {
-      const { id } = req.params;
-      const user = await UserDefaultModel.findById(id).select("-favoritesTrees");
+      const user = await UserDefaultModel.find();
       res.status(200).json(user);
     } catch (error) {
       res.status(500).json({ message: "Error while fetching User", error: error.message });
