@@ -1,4 +1,4 @@
-import UserModel from "../Models/UserModel.js";
+import UserDefaultModel from "../Models/UserDefaultModel.js";
 import RefreshTokenModel from "../Models/RefreshTokenModel.js";
 import formatExpiresAt from "../Utils/general/formatExpiresAt.js";
 import { signSessionJwts, decodeRefreshToken } from "../Utils/general/jwt.js";
@@ -11,10 +11,11 @@ import {
 class UserController {
   async login(req, res) {
     try {
-      let user = await UserModel.findOne({ email: req.body.email });
+      const { email, senha } = req.body;
+      let user = await UserDefaultModel.findOne({ email: req.body.email });
 
       if (!user) {
-        user = await UserModel.create(req.body);
+        user = await UserDefaultModel.create(req.body);
         await user.save();
       }
 
@@ -39,7 +40,7 @@ class UserController {
   async read(req, res) {
     try {
       const { id } = req.params;
-      const user = await UserModel.findById(id).select("-favoritesTrees");
+      const user = await UserDefaultModel.findById(id).select("-favoritesTrees");
       res.status(200).json(user);
     } catch (error) {
       res.status(500).json({ message: "Error while fetching User", error: error.message });
@@ -48,7 +49,7 @@ class UserController {
 
   async readAll(req, res) {
     try {
-      const user = await UserModel.find().select("-favoritesTrees");
+      const user = await UserDefaultModel.find().select("-favoritesTrees");
       res.status(200).json(user);
     } catch (error) {
       res.status(500).json({ message: "Error while fetching Users", error: error.message });
@@ -58,7 +59,7 @@ class UserController {
   async update(req, res) {
     try {
       const { id: _id } = req.params;
-      const userFound = await UserModel.findById(_id);
+      const userFound = await UserDefaultModel.findById(_id);
       if (!userFound)
         return res.status(404).json({ message: "Usuário com id " + _id + " não encontrado!" });
       const user = await userFound.set(req.body).save();
@@ -72,7 +73,7 @@ class UserController {
   async destroy(req, res) {
     try {
       const { id } = req.params;
-      const userFound = await UserModel.findById(id);
+      const userFound = await UserDefaultModel.findById(id);
       if (!userFound) {
         return res.status(404).json({ message: "Usuário com id " + id + " não encontrado!" });
       }
