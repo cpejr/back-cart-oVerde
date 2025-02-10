@@ -1,6 +1,6 @@
 import { Router } from "express";
 import PixPaymentValidator from "../Validators/PixPaymentValidator.js";
-import PixPayment from "../PixPayment/PixPayment.js";
+import PixPayment from "../Controllers/PixPaymentController.js";
 
 const pixpaymentRoutes = Router();
 
