@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const Schema = mongoose.Schema;
 
@@ -32,6 +33,20 @@ const UserModelSchema = new Schema({
     ref: "certificates",
     required: false,
   },
+});
+
+UserModelSchema.pre("save", async function(next) {
+  const usuario = this
+
+  if (usuario.isModified("senha")) {
+      const salt = await bcrypt.genSalt()
+      const hash = await bcrypt.hash(usuario.senha, salt);
+
+      usuario.senha = hash;
+  }
+
+
+  next()
 });
 
 const UserDefaultModel = mongoose.model("usersDefault", UserModelSchema);
